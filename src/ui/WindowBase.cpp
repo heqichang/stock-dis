@@ -96,9 +96,13 @@ LRESULT WindowBase::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
             OnDestroy();
             break;
             
-        case WM_PAINT:
+        case WM_PAINT: {
+            PAINTSTRUCT ps;
+            BeginPaint(hWnd_, &ps);
             OnPaint();
+            EndPaint(hWnd_, &ps);
             break;
+        }
             
         case WM_SIZE:
             OnSize(LOWORD(lParam), HIWORD(lParam));

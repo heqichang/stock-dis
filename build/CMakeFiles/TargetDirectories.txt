@@ -1,0 +1,6 @@
+E:/code/ai/solo-coder/stock-dis/build/CMakeFiles/DeviceManager.dir
+E:/code/ai/solo-coder/stock-dis/build/CMakeFiles/ALL_BUILD.dir
+E:/code/ai/solo-coder/stock-dis/build/CMakeFiles/ZERO_CHECK.dir
+E:/code/ai/solo-coder/stock-dis/build/third_party/sqlite3/CMakeFiles/sqlite3.dir
+E:/code/ai/solo-coder/stock-dis/build/third_party/zint/CMakeFiles/zint.dir
+E:/code/ai/solo-coder/stock-dis/build/third_party/libxlsxwriter/CMakeFiles/xlsxwriter.dir

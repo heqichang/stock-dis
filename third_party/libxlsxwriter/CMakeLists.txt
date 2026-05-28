@@ -1,0 +1,29 @@
+add_library(xlsxwriter STATIC
+    src/app.c
+    src/chart.c
+    src/format.c
+    src/hash_table.c
+    src/packager.c
+    src/relationships.c
+    src/shared_strings.c
+    src/table.c
+    src/theme.c
+    src/utility.c
+    src/vml.c
+    src/workbook.c
+    src/worksheet.c
+    src/xmlwriter.c
+    src/zip.c
+    src/content_types.c
+    src/core.c
+    src/custom.c
+    src/drawing.c
+    src/comment.c
+    src/metadata.c
+    src/rect.c
+    src/io.c
+)
+target_include_directories(xlsxwriter PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+)

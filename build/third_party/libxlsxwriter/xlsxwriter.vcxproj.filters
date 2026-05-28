@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\app.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\chart.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\format.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\hash_table.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\packager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\relationships.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\shared_strings.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\table.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\theme.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\utility.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\vml.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\workbook.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\worksheet.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\xmlwriter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\zip.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\content_types.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\core.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\custom.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\drawing.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\comment.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\metadata.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\rect.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\src\io.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\code\ai\solo-coder\stock-dis\third_party\libxlsxwriter\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{6A1D5094-F966-3957-8F20-F76784612E55}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

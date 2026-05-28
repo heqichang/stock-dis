@@ -2,6 +2,7 @@
 
 #include "ui/WindowBase.h"
 #include "core/common.h"
+#include <commctrl.h>
 
 class DeviceListPage : public WindowBase {
 public:

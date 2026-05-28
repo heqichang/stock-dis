@@ -106,6 +106,8 @@ public:
         using difference_type = ptrdiff_t;
         using pointer = const json*;
         using reference = const json&;
+        using array_iterator = typename std::vector<json>::const_iterator;
+        using object_iterator = typename std::map<std::string, json>::const_iterator;
 
         const_iterator() : variant_(array_iterator{}) {}
         const_iterator(array_iterator it) : variant_(it) {}
@@ -165,8 +167,6 @@ public:
         }
 
     private:
-        using array_iterator = typename std::vector<json>::const_iterator;
-        using object_iterator = typename std::map<std::string, json>::const_iterator;
         std::variant<array_iterator, object_iterator> variant_;
     };
 

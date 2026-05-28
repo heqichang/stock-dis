@@ -2,6 +2,7 @@
 
 #include "ui/WindowBase.h"
 #include "core/common.h"
+#include "print/PrintService.h"
 
 class DeviceListPage;
 class DeviceEditPage;

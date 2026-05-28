@@ -17,7 +17,7 @@ void DeviceListPage::OnCreate() {
     UIHelper::SetComboBoxItem(controls_[ID_STATUS_COMBO], L"全部", -1);
     UIHelper::SetComboBoxItem(controls_[ID_STATUS_COMBO], L"使用中", 0);
     UIHelper::SetComboBoxItem(controls_[ID_STATUS_COMBO], L"报废", 1);
-    ComboBox_SetCurSel(controls_[ID_STATUS_COMBO], 0);
+    SendMessage(controls_[ID_STATUS_COMBO], CB_SETCURSEL, 0, 0);
     
     controls_[ID_ADD_BUTTON] = UIHelper::CreateButton(hWnd_, ID_ADD_BUTTON, L"新增设备", 540, 10, 100, 35);
     controls_[ID_EDIT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_EDIT_BUTTON, L"编辑", 650, 10, 80, 35);

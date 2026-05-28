@@ -3,6 +3,7 @@
 #include "core/common.h"
 #include "barcode/BarcodeGenerator.h"
 #include <vector>
+#include <optional>
 
 struct PrintLabel {
     std::wstring name;
@@ -14,7 +15,7 @@ class PrintService {
 public:
     static PrintService& Instance();
     
-    bool PrintLabel(const PrintLabel& label);
+    bool DoPrintLabel(const PrintLabel& label);
     bool PrintLabels(const std::vector<PrintLabel>& labels);
     void DrawLabel(HDC hdc, const PrintLabel& label, int x, int y, int width, int height);
     bool ShowPrintPreview(HWND hParent, const std::vector<PrintLabel>& labels);

@@ -1,6 +1,6 @@
 #include "DataImportExport.h"
 #include "db/DeviceRepository.h"
-#include "nlohmann/json.hpp"
+#include "json.hpp"
 #include "xlsxwriter.h"
 #include <fstream>
 #include <sstream>

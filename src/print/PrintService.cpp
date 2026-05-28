@@ -67,7 +67,7 @@ void PrintService::DrawLabel(HDC hdc, const PrintLabel& label, int x, int y, int
     DeleteObject(hCodeFont);
 }
 
-bool PrintService::PrintLabel(const PrintLabel& label) {
+bool PrintService::DoPrintLabel(const PrintLabel& label) {
     std::vector<PrintLabel> labels;
     labels.push_back(label);
     return PrintLabels(labels);

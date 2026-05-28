@@ -7,6 +7,9 @@
 #include <memory>
 #include <sstream>
 #include <fstream>
+#include <variant>
+#include <iterator>
+#include <cctype>
 
 namespace nlohmann {
 
@@ -30,8 +33,166 @@ public:
     json(double v) : type_(number_float), float_value_(v) {}
     json(bool v) : type_(boolean), bool_value_(v) {}
 
-    static json array() { json j; j.type_ = array; return j; }
-    static json object() { json j; j.type_ = object; return j; }
+    static json make_array() { json j; j.type_ = array; return j; }
+    static json make_object() { json j; j.type_ = object; return j; }
+
+    class iterator {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = json;
+        using difference_type = ptrdiff_t;
+        using pointer = json*;
+        using reference = json&;
+        using array_iterator = typename std::vector<json>::iterator;
+        using object_iterator = typename std::map<std::string, json>::iterator;
+
+        iterator() : variant_(array_iterator{}) {}
+        iterator(array_iterator it) : variant_(it) {}
+        iterator(object_iterator it) : variant_(it) {}
+
+        reference operator*() {
+            if (std::holds_alternative<array_iterator>(variant_)) {
+                return *std::get<array_iterator>(variant_);
+            } else {
+                return std::get<object_iterator>(variant_)->second;
+            }
+        }
+
+        pointer operator->() { return &(**this); }
+
+        iterator& operator++() {
+            if (std::holds_alternative<array_iterator>(variant_)) {
+                ++std::get<array_iterator>(variant_);
+            } else {
+                ++std::get<object_iterator>(variant_);
+            }
+            return *this;
+        }
+
+        iterator operator++(int) {
+            iterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        bool operator==(const iterator& other) const {
+            if (variant_.index() != other.variant_.index()) return false;
+            if (std::holds_alternative<array_iterator>(variant_)) {
+                return std::get<array_iterator>(variant_) == std::get<array_iterator>(other.variant_);
+            } else {
+                return std::get<object_iterator>(variant_) == std::get<object_iterator>(other.variant_);
+            }
+        }
+
+        bool operator!=(const iterator& other) const {
+            return !(*this == other);
+        }
+
+        const std::string& key() const {
+            return std::get<object_iterator>(variant_)->first;
+        }
+
+        reference value() const {
+            return const_cast<iterator*>(this)->operator*();
+        }
+
+        std::variant<array_iterator, object_iterator> variant_;
+    };
+
+    class const_iterator {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = const json;
+        using difference_type = ptrdiff_t;
+        using pointer = const json*;
+        using reference = const json&;
+
+        const_iterator() : variant_(array_iterator{}) {}
+        const_iterator(array_iterator it) : variant_(it) {}
+        const_iterator(object_iterator it) : variant_(it) {}
+        const_iterator(const iterator& it) {
+            if (std::holds_alternative<iterator::array_iterator>(it.variant_)) {
+                variant_ = std::get<iterator::array_iterator>(it.variant_);
+            } else {
+                variant_ = std::get<iterator::object_iterator>(it.variant_);
+            }
+        }
+
+        reference operator*() const {
+            if (std::holds_alternative<array_iterator>(variant_)) {
+                return *std::get<array_iterator>(variant_);
+            } else {
+                return std::get<object_iterator>(variant_)->second;
+            }
+        }
+
+        pointer operator->() const { return &(**this); }
+
+        const_iterator& operator++() {
+            if (std::holds_alternative<array_iterator>(variant_)) {
+                ++std::get<array_iterator>(variant_);
+            } else {
+                ++std::get<object_iterator>(variant_);
+            }
+            return *this;
+        }
+
+        const_iterator operator++(int) {
+            const_iterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        bool operator==(const const_iterator& other) const {
+            if (variant_.index() != other.variant_.index()) return false;
+            if (std::holds_alternative<array_iterator>(variant_)) {
+                return std::get<array_iterator>(variant_) == std::get<array_iterator>(other.variant_);
+            } else {
+                return std::get<object_iterator>(variant_) == std::get<object_iterator>(other.variant_);
+            }
+        }
+
+        bool operator!=(const const_iterator& other) const {
+            return !(*this == other);
+        }
+
+        const std::string& key() const {
+            return std::get<object_iterator>(variant_)->first;
+        }
+
+        reference value() const {
+            return operator*();
+        }
+
+    private:
+        using array_iterator = typename std::vector<json>::const_iterator;
+        using object_iterator = typename std::map<std::string, json>::const_iterator;
+        std::variant<array_iterator, object_iterator> variant_;
+    };
+
+    iterator begin() {
+        if (type_ == array) return iterator(array_values_.begin());
+        if (type_ == object) return iterator(object_values_.begin());
+        return iterator(array_values_.end());
+    }
+
+    iterator end() {
+        if (type_ == array) return iterator(array_values_.end());
+        if (type_ == object) return iterator(object_values_.end());
+        return iterator(array_values_.end());
+    }
+
+    const_iterator begin() const {
+        if (type_ == array) return const_iterator(array_values_.begin());
+        if (type_ == object) return const_iterator(object_values_.begin());
+        return const_iterator(array_values_.end());
+    }
+
+    const_iterator end() const {
+        if (type_ == array) return const_iterator(array_values_.end());
+        if (type_ == object) return const_iterator(object_values_.end());
+        return const_iterator(array_values_.end());
+    }
 
     bool is_array() const { return type_ == array; }
     bool is_object() const { return type_ == object; }

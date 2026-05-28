@@ -12,6 +12,7 @@
 #include "barcode/BarcodeGenerator.h"
 #include <shlobj.h>
 #include <shlwapi.h>
+#include <sstream>
 #pragma comment(lib, "shell32.lib")
 
 MainWindow::MainWindow() {}

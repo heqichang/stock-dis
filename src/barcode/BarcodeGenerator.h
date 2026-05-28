@@ -4,6 +4,7 @@
 #include "zint.h"
 #include <vector>
 #include <memory>
+#include <optional>
 
 struct BarcodeImage {
     int width = 0;

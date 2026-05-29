@@ -49,9 +49,16 @@ void DeviceListPage::OnSize(int cx, int cy) {
     
     SetWindowPos(controls_[ID_LIST_VIEW], nullptr, 10, 55, list_width, list_height, SWP_NOZORDER);
     
-    int col_width = (list_width - 60 - 100 - 180 - 180);
-    if (col_width < 150) col_width = 150;
-    ListView_SetColumnWidth(controls_[ID_LIST_VIEW], 1, col_width);
+    int remaining_width = list_width - 60 - 100 - 180;
+    int name_width = (int)(remaining_width * 0.6);
+    int code_width = remaining_width - name_width;
+    if (name_width < 150) name_width = 150;
+    if (code_width < 120) code_width = 120;
+    
+    ListView_SetColumnWidth(controls_[ID_LIST_VIEW], 1, name_width);
+    ListView_SetColumnWidth(controls_[ID_LIST_VIEW], 2, code_width);
+    ListView_SetColumnWidth(controls_[ID_LIST_VIEW], 3, 100);
+    ListView_SetColumnWidth(controls_[ID_LIST_VIEW], 4, 180);
     
     SetWindowPos(controls_[ID_PREV_PAGE], nullptr, 10, cy - 45, 100, 30, SWP_NOZORDER);
     SetWindowPos(controls_[ID_NEXT_PAGE], nullptr, cx - 110, cy - 45, 100, 30, SWP_NOZORDER);

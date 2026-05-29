@@ -22,7 +22,7 @@ protected:
     virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
     virtual void OnCreate() {}
     virtual void OnDestroy() {}
-    virtual void OnPaint() {}
+    virtual void OnPaint(HDC hdc) {}
     virtual void OnSize(int cx, int cy) {}
     virtual void OnCommand(WPARAM wParam, LPARAM lParam) {}
     

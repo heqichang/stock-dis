@@ -98,8 +98,8 @@ LRESULT WindowBase::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
             
         case WM_PAINT: {
             PAINTSTRUCT ps;
-            BeginPaint(hWnd_, &ps);
-            OnPaint();
+            HDC hdc = BeginPaint(hWnd_, &ps);
+            OnPaint(hdc);
             EndPaint(hWnd_, &ps);
             break;
         }

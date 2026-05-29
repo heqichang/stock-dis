@@ -17,10 +17,7 @@ void DeviceDetailPage::OnCreate() {
     }
 }
 
-void DeviceDetailPage::OnPaint() {
-    PAINTSTRUCT ps;
-    HDC hdc = BeginPaint(hWnd_, &ps);
-    
+void DeviceDetailPage::OnPaint(HDC hdc) {
     RECT rcClient;
     GetClientRect(hWnd_, &rcClient);
     
@@ -119,7 +116,6 @@ void DeviceDetailPage::OnPaint() {
     DeleteObject(hLabelFont);
     DeleteObject(hValueFont);
     DeleteObject(hCodeFont);
-    EndPaint(hWnd_, &ps);
 }
 
 void DeviceDetailPage::DrawBarcode(HDC hdc) {

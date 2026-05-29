@@ -6,6 +6,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
     
+    SetProcessDPIAware();
+    
     UIHelper::InitCommonControls();
     
     MainWindow mainWnd;

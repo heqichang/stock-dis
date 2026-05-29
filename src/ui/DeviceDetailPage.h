@@ -20,7 +20,7 @@ public:
     
 protected:
     void OnCreate() override;
-    void OnPaint() override;
+    void OnPaint(HDC hdc) override;
     void OnSize(int cx, int cy) override;
     void OnCommand(WPARAM wParam, LPARAM lParam) override;
     

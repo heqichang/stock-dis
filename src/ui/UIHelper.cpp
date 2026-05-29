@@ -84,15 +84,16 @@ void AddListViewColumn(HWND hListView, int index, const std::wstring& text, int 
 
 void AddListViewItem(HWND hListView, int row, int col, const std::wstring& text, LPARAM lParam) {
     LVITEM lvi = {};
-    lvi.mask = LVIF_TEXT | LVIF_PARAM;
     lvi.iItem = row;
     lvi.iSubItem = col;
     lvi.pszText = const_cast<wchar_t*>(text.c_str());
-    lvi.lParam = lParam;
     
     if (col == 0) {
+        lvi.mask = LVIF_TEXT | LVIF_PARAM;
+        lvi.lParam = lParam;
         ListView_InsertItem(hListView, &lvi);
     } else {
+        lvi.mask = LVIF_TEXT;
         ListView_SetItem(hListView, &lvi);
     }
 }

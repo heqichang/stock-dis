@@ -37,7 +37,7 @@ file(GLOB_RECURSE SOURCES
     ${SRC_DIR}/*.hpp
 )
 
-add_executable(DeviceManager WIN32 ${SOURCES})
+add_executable(DeviceManager WIN32 ${SOURCES} ${SRC_DIR}/app.manifest)
 
 target_link_libraries(DeviceManager
     sqlite3

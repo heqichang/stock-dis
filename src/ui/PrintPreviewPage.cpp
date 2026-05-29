@@ -13,10 +13,7 @@ void PrintPreviewPage::OnCreate() {
     controls_[ID_NEXT_PAGE] = UIHelper::CreateButton(hWnd_, ID_NEXT_PAGE, L"下一页", 430, 15, 80, 30);
 }
 
-void PrintPreviewPage::OnPaint() {
-    PAINTSTRUCT ps;
-    HDC hdc = BeginPaint(hWnd_, &ps);
-    
+void PrintPreviewPage::OnPaint(HDC hdc) {
     RECT rcClient;
     GetClientRect(hWnd_, &rcClient);
     
@@ -76,8 +73,6 @@ void PrintPreviewPage::OnPaint() {
     
     SelectObject(hdc, hOldFont);
     DeleteObject(hInfoFont);
-    
-    EndPaint(hWnd_, &ps);
 }
 
 void PrintPreviewPage::OnSize(int cx, int cy) {
@@ -115,15 +110,15 @@ void PrintPreviewPage::SetLabels(const std::vector<PrintLabel>& labels) {
     currentPage_ = 0;
     zoom_ = 1.0f;
     
-    HDC hdc = GetDC(hWnd_);
-    labelWidth_ = (int)(50.0f * GetDeviceCaps(hdc, LOGPIXELSX) / 25.4f);
-    labelHeight_ = (int)(30.0f * GetDeviceCaps(hdc, LOGPIXELSY) / 25.4f);
-    ReleaseDC(hWnd_, hdc);
-    
-    CalculateLayout();
-    
     if (hWnd_) {
+        HDC hdc = GetDC(hWnd_);
+        labelWidth_ = (int)(50.0f * GetDeviceCaps(hdc, LOGPIXELSX) / 25.4f);
+        labelHeight_ = (int)(30.0f * GetDeviceCaps(hdc, LOGPIXELSY) / 25.4f);
+        ReleaseDC(hWnd_, hdc);
+        
+        CalculateLayout();
         InvalidateRect(hWnd_, nullptr, TRUE);
+        UpdateWindow(hWnd_);
     }
 }
 

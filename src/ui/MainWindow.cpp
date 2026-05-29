@@ -27,10 +27,6 @@ MainWindow::~MainWindow() {
 }
 
 bool MainWindow::CreateMainWindow() {
-    if (!Create(nullptr, L"公司设备管理系统", CW_USEDEFAULT, CW_USEDEFAULT, 1200, 700)) {
-        return false;
-    }
-    
     std::wstring dbPath;
     wchar_t szPath[MAX_PATH];
     GetModuleFileName(nullptr, szPath, MAX_PATH);
@@ -39,7 +35,10 @@ bool MainWindow::CreateMainWindow() {
     dbPath += L"\\devices.db";
     
     if (!Database::Instance().Init(dbPath)) {
-        UIHelper::ShowMessageBox(hWnd_, L"数据库初始化失败", L"错误", MB_OK | MB_ICONERROR);
+        return false;
+    }
+    
+    if (!Create(nullptr, L"公司设备管理系统", CW_USEDEFAULT, CW_USEDEFAULT, 1200, 700)) {
         return false;
     }
     

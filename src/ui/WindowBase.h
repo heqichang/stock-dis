@@ -25,6 +25,8 @@ protected:
     virtual void OnPaint(HDC hdc) {}
     virtual void OnSize(int cx, int cy) {}
     virtual void OnCommand(WPARAM wParam, LPARAM lParam) {}
+    virtual void OnMeasureItem(WPARAM idCtrl, LPMEASUREITEMSTRUCT lpMeasureItem) {}
+    virtual void OnDrawItem(LPDRAWITEMSTRUCT lpDrawItem) {}
     
     static LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     

@@ -19,6 +19,15 @@ public:
     std::vector<Device> GetAll();
     bool Import(const std::vector<Device>& devices);
 
+    int64_t GetNextCodeSequence();
+    std::vector<ParamField> GetAllParamFields();
+    std::optional<ParamField> GetParamFieldById(int64_t id);
+    std::optional<ParamField> GetParamFieldByKey(const std::wstring& key);
+    bool AddParamField(ParamField& field);
+    bool UpdateParamField(const ParamField& field);
+    bool DeleteParamField(int64_t id);
+    bool MoveParamField(int64_t id, bool moveUp);
+
 private:
     DeviceRepository();
     ~DeviceRepository();

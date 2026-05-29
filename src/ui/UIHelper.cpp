@@ -5,6 +5,59 @@
 
 namespace UIHelper {
 
+static HFONT g_fonts[7] = {nullptr};
+
+void InitFonts() {
+    HDC hdc = GetDC(nullptr);
+    int dpiY = GetDeviceCaps(hdc, LOGPIXELSY);
+    ReleaseDC(nullptr, hdc);
+
+    g_fonts[(int)FontType::Default] = CreateFont(-MulDiv(16, dpiY, 96), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+
+    g_fonts[(int)FontType::Title] = CreateFont(-MulDiv(18, dpiY, 96), 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+
+    g_fonts[(int)FontType::Label] = CreateFont(-MulDiv(16, dpiY, 96), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+
+    g_fonts[(int)FontType::Input] = CreateFont(-MulDiv(16, dpiY, 96), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+
+    g_fonts[(int)FontType::List] = CreateFont(-MulDiv(16, dpiY, 96), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+
+    g_fonts[(int)FontType::Code] = CreateFont(-MulDiv(16, dpiY, 96), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE, L"Consolas");
+
+    g_fonts[(int)FontType::Tips] = CreateFont(-MulDiv(14, dpiY, 96), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+}
+
+void ReleaseFonts() {
+    for (int i = 0; i < 7; ++i) {
+        if (g_fonts[i]) {
+            DeleteObject(g_fonts[i]);
+            g_fonts[i] = nullptr;
+        }
+    }
+}
+
+HFONT GetFont(FontType type) {
+    int index = (int)type;
+    if (index >= 0 && index < 7 && g_fonts[index]) {
+        return g_fonts[index];
+    }
+    return nullptr;
+}
+
 void InitCommonControls() {
     INITCOMMONCONTROLSEX icex = {};
     icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -13,40 +66,69 @@ void InitCommonControls() {
 }
 
 HWND CreateButton(HWND hParent, int id, const std::wstring& text, int x, int y, int width, int height) {
-    return CreateWindow(L"BUTTON", text.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+    HWND hWnd = CreateWindow(L"BUTTON", text.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
                        x, y, width, height, hParent, (HMENU)id, GetModuleHandle(nullptr), nullptr);
+    if (hWnd) {
+        SendMessage(hWnd, WM_SETFONT, (WPARAM)GetFont(FontType::Default), TRUE);
+    }
+    return hWnd;
 }
 
 HWND CreateEdit(HWND hParent, int id, const std::wstring& text, int x, int y, int width, int height, DWORD style) {
     HWND hWnd = CreateWindow(L"EDIT", text.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL | style,
                             x, y, width, height, hParent, (HMENU)id, GetModuleHandle(nullptr), nullptr);
+    if (hWnd) {
+        SendMessage(hWnd, WM_SETFONT, (WPARAM)GetFont(FontType::Input), TRUE);
+    }
     return hWnd;
 }
 
 HWND CreateStatic(HWND hParent, int id, const std::wstring& text, int x, int y, int width, int height, DWORD style) {
-    return CreateWindow(L"STATIC", text.c_str(), WS_CHILD | WS_VISIBLE | style,
+    HWND hWnd = CreateWindow(L"STATIC", text.c_str(), WS_CHILD | WS_VISIBLE | style,
                        x, y, width, height, hParent, (HMENU)id, GetModuleHandle(nullptr), nullptr);
+    if (hWnd) {
+        SendMessage(hWnd, WM_SETFONT, (WPARAM)GetFont(FontType::Label), TRUE);
+    }
+    return hWnd;
 }
 
 HWND CreateComboBox(HWND hParent, int id, int x, int y, int width, int height) {
-    return CreateWindow(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
+    HWND hWnd = CreateWindow(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
                        x, y, width, height, hParent, (HMENU)id, GetModuleHandle(nullptr), nullptr);
+    if (hWnd) {
+        SendMessage(hWnd, WM_SETFONT, (WPARAM)GetFont(FontType::Default), TRUE);
+    }
+    return hWnd;
 }
 
 HWND CreateListView(HWND hParent, int id, int x, int y, int width, int height) {
-    HWND hWnd = CreateWindow(WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_BORDER | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS,
+    HWND hWnd = CreateWindow(WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_BORDER | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_OWNERDRAWFIXED,
                             x, y, width, height, hParent, (HMENU)id, GetModuleHandle(nullptr), nullptr);
     
     if (hWnd) {
         ListView_SetExtendedListViewStyle(hWnd, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_CHECKBOXES);
+        SendMessage(hWnd, WM_SETFONT, (WPARAM)GetFont(FontType::List), TRUE);
     }
     
     return hWnd;
 }
 
 HWND CreateGroupBox(HWND hParent, int id, const std::wstring& text, int x, int y, int width, int height) {
-    return CreateWindow(L"BUTTON", text.c_str(), WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
+    HWND hWnd = CreateWindow(L"BUTTON", text.c_str(), WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
                        x, y, width, height, hParent, (HMENU)id, GetModuleHandle(nullptr), nullptr);
+    if (hWnd) {
+        SendMessage(hWnd, WM_SETFONT, (WPARAM)GetFont(FontType::Label), TRUE);
+    }
+    return hWnd;
+}
+
+HWND CreateCheckBox(HWND hParent, int id, const std::wstring& text, int x, int y, int width, int height) {
+    HWND hWnd = CreateWindow(L"BUTTON", text.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+                       x, y, width, height, hParent, (HMENU)id, GetModuleHandle(nullptr), nullptr);
+    if (hWnd) {
+        SendMessage(hWnd, WM_SETFONT, (WPARAM)GetFont(FontType::Default), TRUE);
+    }
+    return hWnd;
 }
 
 void SetEditText(HWND hWnd, const std::wstring& text) {
@@ -66,10 +148,23 @@ void SetComboBoxItem(HWND hWnd, const std::wstring& text, int data) {
     ComboBox_SetItemData(hWnd, index, data);
 }
 
+void AddComboBoxItem(HWND hWnd, const std::wstring& text, int data) {
+    int index = ComboBox_AddString(hWnd, text.c_str());
+    ComboBox_SetItemData(hWnd, index, data);
+}
+
 int GetComboBoxSelectedData(HWND hWnd) {
     int index = ComboBox_GetCurSel(hWnd);
     if (index == CB_ERR) return -1;
     return (int)ComboBox_GetItemData(hWnd, index);
+}
+
+int GetComboBoxSelectedIndex(HWND hWnd) {
+    return ComboBox_GetCurSel(hWnd);
+}
+
+void SetComboBoxSelectedIndex(HWND hWnd, int index) {
+    ComboBox_SetCurSel(hWnd, index);
 }
 
 void AddListViewColumn(HWND hListView, int index, const std::wstring& text, int width) {

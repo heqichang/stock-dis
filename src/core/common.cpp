@@ -18,19 +18,44 @@ DeviceStatus StringToStatus(const std::wstring& str) {
     return DeviceStatus::IN_USE;
 }
 
-std::wstring GenerateUniqueCode() {
-    static const wchar_t chars[] = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    static std::uniform_int_distribution<> dis(0, 35);
+ParamFieldType StringToFieldType(const std::wstring& str) {
+    if (str == L"number") return ParamFieldType::NUMBER;
+    if (str == L"date") return ParamFieldType::DATE;
+    if (str == L"select") return ParamFieldType::SELECT;
+    return ParamFieldType::TEXT;
+}
 
-    std::wstring code;
-    code.reserve(10);
-    
-    for (int i = 0; i < 10; ++i) {
-        code += chars[dis(gen)];
+std::wstring FieldTypeToString(ParamFieldType type) {
+    switch (type) {
+        case ParamFieldType::TEXT: return L"text";
+        case ParamFieldType::NUMBER: return L"number";
+        case ParamFieldType::DATE: return L"date";
+        case ParamFieldType::SELECT: return L"select";
+        default: return L"text";
     }
-    return code;
+}
+
+std::wstring GenerateUniqueCode() {
+    extern int64_t GetNextCodeSequenceFromRepo();
+    int64_t sequence = GetNextCodeSequenceFromRepo();
+    if (sequence == 0) {
+        static const wchar_t chars[] = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_int_distribution<> dis(0, 35);
+
+        std::wstring code;
+        code.reserve(10);
+        
+        for (int i = 0; i < 10; ++i) {
+            code += chars[dis(gen)];
+        }
+        return code;
+    }
+    
+    wchar_t buf[32];
+    swprintf_s(buf, 32, L"TSG%08I64d", sequence);
+    return std::wstring(buf);
 }
 
 std::wstring GetCurrentDateTime() {

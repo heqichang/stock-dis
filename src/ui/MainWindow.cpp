@@ -3,6 +3,7 @@
 #include "ui/DeviceEditPage.h"
 #include "ui/DeviceDetailPage.h"
 #include "ui/PrintPreviewPage.h"
+#include "ui/ParamSettingsPage.h"
 #include "ui/UIHelper.h"
 #include "db/Database.h"
 #include "db/DeviceRepository.h"
@@ -24,6 +25,7 @@ MainWindow::~MainWindow() {
     delete editPage_;
     delete detailPage_;
     delete previewPage_;
+    delete paramSettingsPage_;
 }
 
 bool MainWindow::CreateMainWindow() {
@@ -48,6 +50,8 @@ bool MainWindow::CreateMainWindow() {
 }
 
 void MainWindow::OnCreate() {
+    UIHelper::InitFonts();
+    
     listPage_ = new DeviceListPage();
     listPage_->Create(hWnd_, L"", 0, 0, 1200, 700);
     
@@ -60,6 +64,9 @@ void MainWindow::OnCreate() {
     previewPage_ = new PrintPreviewPage();
     previewPage_->Create(hWnd_, L"", 0, 0, 1200, 700);
     
+    paramSettingsPage_ = new ParamSettingsPage();
+    paramSettingsPage_->Create(hWnd_, L"", 0, 0, 1200, 700);
+    
     SwitchPage(PageType::LIST);
 }
 
@@ -70,9 +77,11 @@ void MainWindow::OnSize(int cx, int cy) {
     if (editPage_) SetWindowPos(editPage_->GetHandle(), nullptr, 0, 0, cx, cy, SWP_NOZORDER);
     if (detailPage_) SetWindowPos(detailPage_->GetHandle(), nullptr, 0, 0, cx, cy, SWP_NOZORDER);
     if (previewPage_) SetWindowPos(previewPage_->GetHandle(), nullptr, 0, 0, cx, cy, SWP_NOZORDER);
+    if (paramSettingsPage_) SetWindowPos(paramSettingsPage_->GetHandle(), nullptr, 0, 0, cx, cy, SWP_NOZORDER);
 }
 
 void MainWindow::OnDestroy() {
+    UIHelper::ReleaseFonts();
     Database::Instance().Close();
     PostQuitMessage(0);
 }
@@ -97,6 +106,9 @@ void MainWindow::OnCommand(WPARAM wParam, LPARAM lParam) {
             break;
         case 5:
             OnImport();
+            break;
+        case 6:
+            ShowParamSettings();
             break;
         case 10: {
             int64_t deviceId = (int64_t)lParam;
@@ -136,6 +148,7 @@ void MainWindow::SwitchPage(PageType page) {
     if (editPage_) editPage_->Hide();
     if (detailPage_) detailPage_->Hide();
     if (previewPage_) previewPage_->Hide();
+    if (paramSettingsPage_) paramSettingsPage_->Hide();
     
     switch (page) {
         case PageType::LIST:
@@ -160,6 +173,13 @@ void MainWindow::SwitchPage(PageType page) {
             if (previewPage_) {
                 previewPage_->Show();
                 SetWindowText(hWnd_, L"公司设备管理系统 - 打印预览");
+            }
+            break;
+        case PageType::PARAM_SETTINGS:
+            if (paramSettingsPage_) {
+                paramSettingsPage_->RefreshData();
+                paramSettingsPage_->Show();
+                SetWindowText(hWnd_, L"公司设备管理系统 - 参数设置");
             }
             break;
     }
@@ -188,6 +208,10 @@ void MainWindow::ShowPrintPreview(const std::vector<PrintLabel>& labels) {
         previewPage_->SetLabels(labels);
     }
     SwitchPage(PageType::PREVIEW);
+}
+
+void MainWindow::ShowParamSettings() {
+    SwitchPage(PageType::PARAM_SETTINGS);
 }
 
 void MainWindow::OnScanCode(WPARAM wParam, LPARAM lParam) {
@@ -234,20 +258,14 @@ void MainWindow::ShowScanCodeDialog(const std::wstring& code) {
 }
 
 void MainWindow::OnExport() {
-    int ret = MessageBox(hWnd_, L"点击\"是\"导出JSON格式，点击\"否\"导出Excel格式", L"选择导出格式", MB_YESNOCANCEL | MB_ICONQUESTION);
-    if (ret == IDCANCEL) return;
-    
-    ShowFileDialog(true, ret == IDYES);
+    ShowFileDialog(true);
 }
 
 void MainWindow::OnImport() {
-    int ret = MessageBox(hWnd_, L"点击\"是\"导入JSON格式，点击\"否\"导入Excel格式", L"选择导入格式", MB_YESNOCANCEL | MB_ICONQUESTION);
-    if (ret == IDCANCEL) return;
-    
-    ShowFileDialog(false, ret == IDYES);
+    ShowFileDialog(false);
 }
 
-void MainWindow::ShowFileDialog(bool isExport, bool isJson) {
+void MainWindow::ShowFileDialog(bool isExport) {
     OPENFILENAME ofn = {};
     wchar_t szFileName[MAX_PATH] = {0};
     
@@ -256,17 +274,14 @@ void MainWindow::ShowFileDialog(bool isExport, bool isJson) {
     ofn.lpstrFile = szFileName;
     ofn.nMaxFile = MAX_PATH;
     
-    if (isJson) {
-        ofn.lpstrFilter = L"JSON 文件 (*.json)\0*.json\0所有文件 (*.*)\0*.*\0";
-        ofn.lpstrDefExt = L"json";
-        wcscpy_s(szFileName, L"设备数据.json");
-    } else {
-        ofn.lpstrFilter = L"Excel 文件 (*.xlsx)\0*.xlsx\0所有文件 (*.*)\0*.*\0";
-        ofn.lpstrDefExt = L"xlsx";
-        wcscpy_s(szFileName, L"设备数据.xlsx");
-    }
+    ofn.lpstrFilter = L"Excel 文件 (*.xlsx)\0*.xlsx\0所有文件 (*.*)\0*.*\0";
+    ofn.lpstrDefExt = L"xlsx";
+    wcscpy_s(szFileName, L"设备数据.xlsx");
     
-    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+    if (!isExport) {
+        ofn.Flags |= OFN_FILEMUSTEXIST;
+    }
     
     BOOL success = FALSE;
     if (isExport) {
@@ -278,26 +293,23 @@ void MainWindow::ShowFileDialog(bool isExport, bool isJson) {
     if (!success) return;
     
     std::wstring filePath = szFileName;
-    bool result = false;
     
     if (isExport) {
-        if (isJson) {
-            result = DataImportExport::Instance().ExportToJson(filePath);
+        bool result = DataImportExport::Instance().ExportToExcel(filePath);
+        if (result) {
+            UIHelper::ShowMessageBox(hWnd_, L"导出成功", L"提示");
+            listPage_->RefreshData();
         } else {
-            result = DataImportExport::Instance().ExportToExcel(filePath);
+            UIHelper::ShowMessageBox(hWnd_, L"导出失败", L"错误", MB_OK | MB_ICONERROR);
         }
     } else {
-        if (isJson) {
-            result = DataImportExport::Instance().ImportFromJson(filePath);
-        } else {
-            result = DataImportExport::Instance().ImportFromExcel(filePath);
-        }
-    }
-    
-    if (result) {
-        UIHelper::ShowMessageBox(hWnd_, isExport ? L"导出成功" : L"导入成功", L"提示");
+        ImportResult result = DataImportExport::Instance().ImportFromExcel(filePath);
+        std::wstringstream ss;
+        ss << L"导入完成\r\n\r\n";
+        ss << L"成功: " << result.success << L" 条\r\n";
+        ss << L"跳过: " << result.skipped << L" 条\r\n";
+        ss << L"失败: " << result.failed << L" 条";
+        UIHelper::ShowMessageBox(hWnd_, ss.str(), L"导入结果");
         listPage_->RefreshData();
-    } else {
-        UIHelper::ShowMessageBox(hWnd_, isExport ? L"导出失败" : L"导入失败", L"错误", MB_OK | MB_ICONERROR);
     }
 }

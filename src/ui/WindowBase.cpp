@@ -112,6 +112,14 @@ LRESULT WindowBase::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
             OnCommand(wParam, lParam);
             break;
             
+        case WM_MEASUREITEM:
+            OnMeasureItem(wParam, (LPMEASUREITEMSTRUCT)lParam);
+            break;
+            
+        case WM_DRAWITEM:
+            OnDrawItem((LPDRAWITEMSTRUCT)lParam);
+            break;
+            
         default:
             return DefWindowProc(hWnd_, uMsg, wParam, lParam);
     }

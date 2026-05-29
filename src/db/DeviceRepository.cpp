@@ -17,9 +17,6 @@ bool DeviceRepository::Add(Device& device) {
 
     if (device.code.empty()) {
         device.code = GenerateUniqueCode();
-        while (ExistsByCode(device.code)) {
-            device.code = GenerateUniqueCode();
-        }
     }
 
     device.created_at = GetCurrentDateTime();
@@ -324,4 +321,248 @@ bool DeviceRepository::Import(const std::vector<Device>& devices) {
     }
 
     return success;
+}
+
+int64_t DeviceRepository::GetNextCodeSequence() {
+    sqlite3* db = Database::Instance().GetHandle();
+    if (!db) return 0;
+
+    char* err_msg = nullptr;
+    sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &err_msg);
+
+    const char* select_sql = "SELECT current_value FROM code_sequence WHERE id = 1";
+    sqlite3_stmt* stmt = nullptr;
+    int64_t current_value = 0;
+
+    int rc = sqlite3_prepare_v2(db, select_sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_exec(db, "ROLLBACK", nullptr, nullptr, &err_msg);
+        return 0;
+    }
+
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        current_value = sqlite3_column_int64(stmt, 0);
+    }
+    sqlite3_finalize(stmt);
+
+    current_value++;
+
+    const char* update_sql = "UPDATE code_sequence SET current_value = ? WHERE id = 1";
+    rc = sqlite3_prepare_v2(db, update_sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_exec(db, "ROLLBACK", nullptr, nullptr, &err_msg);
+        return 0;
+    }
+
+    sqlite3_bind_int64(stmt, 1, current_value);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    sqlite3_exec(db, "COMMIT", nullptr, nullptr, &err_msg);
+
+    return current_value;
+}
+
+std::vector<ParamField> DeviceRepository::GetAllParamFields() {
+    std::vector<ParamField> fields;
+    sqlite3* db = Database::Instance().GetHandle();
+    if (!db) return fields;
+
+    const char* sql = "SELECT id, field_key, field_label, field_type, field_options, sort_order, is_required, created_at FROM param_fields ORDER BY sort_order, id";
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) return fields;
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        ParamField field;
+        field.id = sqlite3_column_int64(stmt, 0);
+        field.field_key = StringToWString((const char*)sqlite3_column_text(stmt, 1));
+        field.field_label = StringToWString((const char*)sqlite3_column_text(stmt, 2));
+        field.field_type = StringToFieldType(StringToWString((const char*)sqlite3_column_text(stmt, 3)));
+        field.field_options = StringToWString((const char*)sqlite3_column_text(stmt, 4));
+        field.sort_order = sqlite3_column_int(stmt, 5);
+        field.is_required = sqlite3_column_int(stmt, 6) != 0;
+        field.created_at = StringToWString((const char*)sqlite3_column_text(stmt, 7));
+        fields.push_back(field);
+    }
+
+    sqlite3_finalize(stmt);
+    return fields;
+}
+
+std::optional<ParamField> DeviceRepository::GetParamFieldById(int64_t id) {
+    sqlite3* db = Database::Instance().GetHandle();
+    if (!db) return std::nullopt;
+
+    const char* sql = "SELECT id, field_key, field_label, field_type, field_options, sort_order, is_required, created_at FROM param_fields WHERE id = ?";
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) return std::nullopt;
+
+    sqlite3_bind_int64(stmt, 1, id);
+    if (sqlite3_step(stmt) != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        return std::nullopt;
+    }
+
+    ParamField field;
+    field.id = sqlite3_column_int64(stmt, 0);
+    field.field_key = StringToWString((const char*)sqlite3_column_text(stmt, 1));
+    field.field_label = StringToWString((const char*)sqlite3_column_text(stmt, 2));
+    field.field_type = StringToFieldType(StringToWString((const char*)sqlite3_column_text(stmt, 3)));
+    field.field_options = StringToWString((const char*)sqlite3_column_text(stmt, 4));
+    field.sort_order = sqlite3_column_int(stmt, 5);
+    field.is_required = sqlite3_column_int(stmt, 6) != 0;
+    field.created_at = StringToWString((const char*)sqlite3_column_text(stmt, 7));
+
+    sqlite3_finalize(stmt);
+    return field;
+}
+
+std::optional<ParamField> DeviceRepository::GetParamFieldByKey(const std::wstring& key) {
+    sqlite3* db = Database::Instance().GetHandle();
+    if (!db) return std::nullopt;
+
+    const char* sql = "SELECT id, field_key, field_label, field_type, field_options, sort_order, is_required, created_at FROM param_fields WHERE field_key = ?";
+    sqlite3_stmt* stmt = nullptr;
+
+    std::string key_utf8 = WStringToString(key);
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) return std::nullopt;
+
+    sqlite3_bind_text(stmt, 1, key_utf8.c_str(), -1, SQLITE_TRANSIENT);
+    if (sqlite3_step(stmt) != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        return std::nullopt;
+    }
+
+    ParamField field;
+    field.id = sqlite3_column_int64(stmt, 0);
+    field.field_key = StringToWString((const char*)sqlite3_column_text(stmt, 1));
+    field.field_label = StringToWString((const char*)sqlite3_column_text(stmt, 2));
+    field.field_type = StringToFieldType(StringToWString((const char*)sqlite3_column_text(stmt, 3)));
+    field.field_options = StringToWString((const char*)sqlite3_column_text(stmt, 4));
+    field.sort_order = sqlite3_column_int(stmt, 5);
+    field.is_required = sqlite3_column_int(stmt, 6) != 0;
+    field.created_at = StringToWString((const char*)sqlite3_column_text(stmt, 7));
+
+    sqlite3_finalize(stmt);
+    return field;
+}
+
+bool DeviceRepository::AddParamField(ParamField& field) {
+    sqlite3* db = Database::Instance().GetHandle();
+    if (!db) return false;
+
+    field.created_at = GetCurrentDateTime();
+
+    const char* sql = "INSERT INTO param_fields (field_key, field_label, field_type, field_options, sort_order, is_required, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    sqlite3_stmt* stmt = nullptr;
+
+    std::string key_utf8 = WStringToString(field.field_key);
+    std::string label_utf8 = WStringToString(field.field_label);
+    std::string type_utf8 = WStringToString(FieldTypeToString(field.field_type));
+    std::string options_utf8 = WStringToString(field.field_options);
+    std::string created_utf8 = WStringToString(field.created_at);
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) return false;
+
+    sqlite3_bind_text(stmt, 1, key_utf8.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, label_utf8.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, type_utf8.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, options_utf8.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 5, field.sort_order);
+    sqlite3_bind_int(stmt, 6, field.is_required ? 1 : 0);
+    sqlite3_bind_text(stmt, 7, created_utf8.c_str(), -1, SQLITE_TRANSIENT);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    field.id = sqlite3_last_insert_rowid(db);
+    sqlite3_finalize(stmt);
+    return true;
+}
+
+bool DeviceRepository::UpdateParamField(const ParamField& field) {
+    sqlite3* db = Database::Instance().GetHandle();
+    if (!db) return false;
+
+    const char* sql = "UPDATE param_fields SET field_key = ?, field_label = ?, field_type = ?, field_options = ?, sort_order = ?, is_required = ? WHERE id = ?";
+    sqlite3_stmt* stmt = nullptr;
+
+    std::string key_utf8 = WStringToString(field.field_key);
+    std::string label_utf8 = WStringToString(field.field_label);
+    std::string type_utf8 = WStringToString(FieldTypeToString(field.field_type));
+    std::string options_utf8 = WStringToString(field.field_options);
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) return false;
+
+    sqlite3_bind_text(stmt, 1, key_utf8.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, label_utf8.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, type_utf8.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, options_utf8.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 5, field.sort_order);
+    sqlite3_bind_int(stmt, 6, field.is_required ? 1 : 0);
+    sqlite3_bind_int64(stmt, 7, field.id);
+
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE;
+}
+
+bool DeviceRepository::DeleteParamField(int64_t id) {
+    sqlite3* db = Database::Instance().GetHandle();
+    if (!db) return false;
+
+    const char* sql = "DELETE FROM param_fields WHERE id = ?";
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) return false;
+
+    sqlite3_bind_int64(stmt, 1, id);
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE;
+}
+
+bool DeviceRepository::MoveParamField(int64_t id, bool moveUp) {
+    auto current = GetParamFieldById(id);
+    if (!current) return false;
+
+    auto fields = GetAllParamFields();
+    if (fields.size() < 2) return false;
+
+    int currentIndex = -1;
+    for (size_t i = 0; i < fields.size(); ++i) {
+        if (fields[i].id == id) {
+            currentIndex = (int)i;
+            break;
+        }
+    }
+
+    if (currentIndex == -1) return false;
+    if (moveUp && currentIndex == 0) return false;
+    if (!moveUp && currentIndex == (int)fields.size() - 1) return false;
+
+    int swapIndex = moveUp ? currentIndex - 1 : currentIndex + 1;
+    ParamField& currentField = fields[currentIndex];
+    ParamField& swapField = fields[swapIndex];
+
+    int tempOrder = currentField.sort_order;
+    currentField.sort_order = swapField.sort_order;
+    swapField.sort_order = tempOrder;
+
+    return UpdateParamField(currentField) && UpdateParamField(swapField);
+}
+
+int64_t GetNextCodeSequenceFromRepo() {
+    return DeviceRepository::Instance().GetNextCodeSequence();
 }

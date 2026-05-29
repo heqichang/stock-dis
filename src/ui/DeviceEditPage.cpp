@@ -3,33 +3,73 @@
 #include "db/DeviceRepository.h"
 #include "barcode/BarcodeGenerator.h"
 #include "print/PrintService.h"
+#include "json.hpp"
 #include <sstream>
+
+using json = nlohmann::json;
 
 DeviceEditPage::DeviceEditPage() {}
 
 void DeviceEditPage::OnCreate() {
-    controls_[ID_NAME_LABEL] = UIHelper::CreateStatic(hWnd_, ID_NAME_LABEL, L"设备名称:", 30, 30, 100, 25);
-    controls_[ID_NAME_EDIT] = UIHelper::CreateEdit(hWnd_, ID_NAME_EDIT, L"", 140, 30, 300, 30);
+    controls_[ID_NAME_LABEL] = UIHelper::CreateStatic(hWnd_, ID_NAME_LABEL, L"设备名称:", 30, 35, 100, 28);
+    controls_[ID_NAME_EDIT] = UIHelper::CreateEdit(hWnd_, ID_NAME_EDIT, L"", 140, 30, 300, 36);
     
-    controls_[ID_CODE_LABEL] = UIHelper::CreateStatic(hWnd_, ID_CODE_LABEL, L"识别码:", 30, 80, 100, 25);
-    controls_[ID_CODE_EDIT] = UIHelper::CreateEdit(hWnd_, ID_CODE_EDIT, L"", 140, 80, 300, 30, ES_READONLY);
+    controls_[ID_CODE_LABEL] = UIHelper::CreateStatic(hWnd_, ID_CODE_LABEL, L"识别码:", 30, 90, 100, 28);
+    controls_[ID_CODE_EDIT] = UIHelper::CreateEdit(hWnd_, ID_CODE_EDIT, L"", 140, 85, 300, 36, ES_READONLY);
     
-    controls_[ID_PARAMS_LABEL] = UIHelper::CreateStatic(hWnd_, ID_PARAMS_LABEL, L"设备参数 (JSON格式):", 30, 130, 200, 25);
-    controls_[ID_PARAMS_EDIT] = UIHelper::CreateEdit(hWnd_, ID_PARAMS_EDIT, L"{}", 30, 160, 540, 200, ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL);
+    CreateParamForm();
     
     controls_[ID_TIPS_LABEL] = UIHelper::CreateStatic(hWnd_, ID_TIPS_LABEL, 
-        L"提示: 请输入有效的JSON格式，例如：{\"品牌\":\"华为\",\"型号\":\"MateBook X Pro\"}", 
-        30, 370, 540, 25, SS_CENTER);
+        L"提示: 请填写设备信息，带*为必填项", 
+        30, 410, 540, 28, SS_CENTER);
     
-    controls_[ID_SAVE_BUTTON] = UIHelper::CreateButton(hWnd_, ID_SAVE_BUTTON, L"保存", 200, 410, 100, 35);
-    controls_[ID_CANCEL_BUTTON] = UIHelper::CreateButton(hWnd_, ID_CANCEL_BUTTON, L"取消", 350, 410, 100, 35);
+    controls_[ID_SAVE_BUTTON] = UIHelper::CreateButton(hWnd_, ID_SAVE_BUTTON, L"保存", 200, 455, 100, 40);
+    controls_[ID_CANCEL_BUTTON] = UIHelper::CreateButton(hWnd_, ID_CANCEL_BUTTON, L"取消", 350, 455, 100, 40);
     
     if (!isEdit_) {
         std::wstring code = GenerateUniqueCode();
-        while (DeviceRepository::Instance().ExistsByCode(code)) {
-            code = GenerateUniqueCode();
-        }
         UIHelper::SetEditText(controls_[ID_CODE_EDIT], code);
+    }
+}
+
+void DeviceEditPage::CreateParamForm() {
+    for (auto& ctrl : paramControls_) {
+        if (ctrl.hLabel) DestroyWindow(ctrl.hLabel);
+        if (ctrl.hEdit) DestroyWindow(ctrl.hEdit);
+    }
+    paramControls_.clear();
+    
+    auto fields = DeviceRepository::Instance().GetAllParamFields();
+    int yOffset = 145;
+    int controlId = ID_PARAM_FIRST;
+    
+    for (size_t i = 0; i < fields.size(); ++i) {
+        const auto& field = fields[i];
+        
+        ParamFormControl ctrl;
+        ctrl.field = field;
+        ctrl.labelId = controlId++;
+        ctrl.editId = controlId++;
+        
+        std::wstring labelText = field.field_label;
+        if (field.is_required) {
+            labelText += L"*";
+        }
+        labelText += L":";
+        
+        ctrl.hLabel = UIHelper::CreateStatic(hWnd_, ctrl.labelId, labelText, 30, yOffset + 5, 100, 28);
+        controls_[ctrl.labelId] = ctrl.hLabel;
+        
+        DWORD style = 0;
+        if (field.field_type == ParamFieldType::NUMBER) {
+            style = ES_NUMBER;
+        }
+        
+        ctrl.hEdit = UIHelper::CreateEdit(hWnd_, ctrl.editId, L"", 140, yOffset, 300, 36, style);
+        controls_[ctrl.editId] = ctrl.hEdit;
+        
+        paramControls_.push_back(ctrl);
+        yOffset += 50;
     }
 }
 
@@ -39,23 +79,27 @@ void DeviceEditPage::OnSize(int cx, int cy) {
     int editWidth = cx - 200;
     if (editWidth < 300) editWidth = 300;
     
-    SetWindowPos(controls_[ID_NAME_EDIT], nullptr, 140, 30, editWidth, 30, SWP_NOZORDER);
-    SetWindowPos(controls_[ID_CODE_EDIT], nullptr, 140, 80, editWidth, 30, SWP_NOZORDER);
+    SetWindowPos(controls_[ID_NAME_EDIT], nullptr, 140, 30, editWidth, 36, SWP_NOZORDER);
+    SetWindowPos(controls_[ID_CODE_EDIT], nullptr, 140, 85, editWidth, 36, SWP_NOZORDER);
     
+    int yOffset = 145;
+    for (auto& ctrl : paramControls_) {
+        SetWindowPos(ctrl.hEdit, nullptr, 140, yOffset, editWidth, 36, SWP_NOZORDER);
+        yOffset += 50;
+    }
+    
+    int tipsY = yOffset + 10;
     int paramsWidth = cx - 60;
     if (paramsWidth < 300) paramsWidth = 300;
-    int paramsHeight = cy - 300;
-    if (paramsHeight < 150) paramsHeight = 150;
     
-    SetWindowPos(controls_[ID_PARAMS_EDIT], nullptr, 30, 160, paramsWidth, paramsHeight, SWP_NOZORDER);
-    SetWindowPos(controls_[ID_TIPS_LABEL], nullptr, 30, 160 + paramsHeight + 10, paramsWidth, 25, SWP_NOZORDER);
+    SetWindowPos(controls_[ID_TIPS_LABEL], nullptr, 30, tipsY, paramsWidth, 28, SWP_NOZORDER);
     
-    int btnY = 160 + paramsHeight + 45;
+    int btnY = tipsY + 45;
     int btnX1 = (cx - 220) / 2;
     int btnX2 = btnX1 + 120;
     
-    SetWindowPos(controls_[ID_SAVE_BUTTON], nullptr, btnX1, btnY, 100, 35, SWP_NOZORDER);
-    SetWindowPos(controls_[ID_CANCEL_BUTTON], nullptr, btnX2, btnY, 100, 35, SWP_NOZORDER);
+    SetWindowPos(controls_[ID_SAVE_BUTTON], nullptr, btnX1, btnY, 100, 40, SWP_NOZORDER);
+    SetWindowPos(controls_[ID_CANCEL_BUTTON], nullptr, btnX2, btnY, 100, 40, SWP_NOZORDER);
 }
 
 void DeviceEditPage::OnCommand(WPARAM wParam, LPARAM lParam) {
@@ -78,35 +122,93 @@ void DeviceEditPage::SetEditDevice(int64_t deviceId) {
         if (controls_[ID_NAME_EDIT]) {
             UIHelper::SetEditText(controls_[ID_NAME_EDIT], device->name);
             UIHelper::SetEditText(controls_[ID_CODE_EDIT], device->code);
-            UIHelper::SetEditText(controls_[ID_PARAMS_EDIT], device->params);
             EnableWindow(controls_[ID_CODE_EDIT], FALSE);
         }
         originalCode_ = device->code;
+        originalParams_ = device->params;
+        
+        LoadParamValues();
     }
+}
+
+void DeviceEditPage::LoadParamValues() {
+    if (originalParams_.empty()) return;
+    
+    try {
+        json j = json::parse(WStringToString(originalParams_));
+        if (!j.is_object()) return;
+        
+        for (auto& ctrl : paramControls_) {
+            std::string key = WStringToString(ctrl.field.field_key);
+            if (j.contains(key)) {
+                std::wstring value;
+                if (j[key].is_string()) {
+                    value = StringToWString(j[key].get<std::string>());
+                } else {
+                    value = StringToWString(j[key].dump());
+                }
+                UIHelper::SetEditText(ctrl.hEdit, value);
+            }
+        }
+    } catch (...) {
+    }
+}
+
+std::wstring DeviceEditPage::CollectParams() {
+    json j;
+    
+    if (!originalParams_.empty()) {
+        try {
+            j = json::parse(WStringToString(originalParams_));
+        } catch (...) {
+            j = json::object();
+        }
+    }
+    
+    for (auto& ctrl : paramControls_) {
+        std::wstring value = UIHelper::GetEditText(ctrl.hEdit);
+        std::string key = WStringToString(ctrl.field.field_key);
+        
+        if (!value.empty()) {
+            if (ctrl.field.field_type == ParamFieldType::NUMBER) {
+                try {
+                    double num = std::stod(WStringToString(value));
+                    j[key] = num;
+                } catch (...) {
+                    j[key] = WStringToString(value);
+                }
+            } else {
+                j[key] = WStringToString(value);
+            }
+        } else if (j.contains(key)) {
+            j.erase(key);
+        }
+    }
+    
+    return StringToWString(j.dump());
 }
 
 void DeviceEditPage::Clear() {
     isEdit_ = false;
     editDeviceId_ = 0;
     originalCode_.clear();
+    originalParams_.clear();
     
     if (controls_[ID_NAME_EDIT]) {
         UIHelper::SetEditText(controls_[ID_NAME_EDIT], L"");
-        UIHelper::SetEditText(controls_[ID_PARAMS_EDIT], L"{}");
-        EnableWindow(controls_[ID_CODE_EDIT], TRUE);
+        EnableWindow(controls_[ID_CODE_EDIT], FALSE);
         
         std::wstring code = GenerateUniqueCode();
-        while (DeviceRepository::Instance().ExistsByCode(code)) {
-            code = GenerateUniqueCode();
-        }
         UIHelper::SetEditText(controls_[ID_CODE_EDIT], code);
+        
+        CreateParamForm();
     }
 }
 
 void DeviceEditPage::OnSave() {
     std::wstring name = UIHelper::GetEditText(controls_[ID_NAME_EDIT]);
     std::wstring code = UIHelper::GetEditText(controls_[ID_CODE_EDIT]);
-    std::wstring params = UIHelper::GetEditText(controls_[ID_PARAMS_EDIT]);
+    std::wstring params = CollectParams();
     
     if (name.empty()) {
         UIHelper::ShowMessageBox(hWnd_, L"请输入设备名称", L"提示");
@@ -119,12 +221,20 @@ void DeviceEditPage::OnSave() {
         return;
     }
     
-    if (params.empty()) {
-        params = L"{}";
+    for (auto& ctrl : paramControls_) {
+        if (ctrl.field.is_required) {
+            std::wstring value = UIHelper::GetEditText(ctrl.hEdit);
+            if (value.empty()) {
+                std::wstring msg = L"请填写必填项: " + ctrl.field.field_label;
+                UIHelper::ShowMessageBox(hWnd_, msg, L"提示");
+                SetFocus(ctrl.hEdit);
+                return;
+            }
+        }
     }
     
     if (!isEdit_ && DeviceRepository::Instance().ExistsByCode(code)) {
-        UIHelper::ShowMessageBox(hWnd_, L"该识别码已存在，请重新生成或手动输入", L"提示");
+        UIHelper::ShowMessageBox(hWnd_, L"该识别码已存在，请重新生成", L"提示");
         return;
     }
     

@@ -18,6 +18,7 @@ public:
         ID_PRINT_BUTTON,
         ID_EXPORT_BUTTON,
         ID_IMPORT_BUTTON,
+        ID_PARAM_SETTINGS_BUTTON,
         ID_LIST_VIEW,
         ID_PREV_PAGE,
         ID_NEXT_PAGE,
@@ -30,6 +31,8 @@ protected:
     void OnCreate() override;
     void OnSize(int cx, int cy) override;
     void OnCommand(WPARAM wParam, LPARAM lParam) override;
+    void OnMeasureItem(WPARAM idCtrl, LPMEASUREITEMSTRUCT lpMeasureItem) override;
+    void OnDrawItem(LPDRAWITEMSTRUCT lpDrawItem) override;
     LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
     
 private:
@@ -42,6 +45,7 @@ private:
     void OnPrint();
     void OnExport();
     void OnImport();
+    void OnParamSettings();
     void OnPrevPage();
     void OnNextPage();
     void OnStatusFilter();

@@ -4,14 +4,18 @@
 #include <vector>
 #include <string>
 
+struct ImportResult {
+    int success = 0;
+    int skipped = 0;
+    int failed = 0;
+};
+
 class DataImportExport {
 public:
     static DataImportExport& Instance();
     
-    bool ExportToJson(const std::wstring& filePath);
     bool ExportToExcel(const std::wstring& filePath);
-    bool ImportFromJson(const std::wstring& filePath);
-    bool ImportFromExcel(const std::wstring& filePath);
+    ImportResult ImportFromExcel(const std::wstring& filePath);
     
 private:
     DataImportExport();

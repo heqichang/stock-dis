@@ -49,7 +49,27 @@ struct PagedResult {
     int page_count = 0;
 };
 
+enum class ParamFieldType {
+    TEXT = 0,
+    NUMBER = 1,
+    DATE = 2,
+    SELECT = 3
+};
+
+struct ParamField {
+    int64_t id = 0;
+    std::wstring field_key;
+    std::wstring field_label;
+    ParamFieldType field_type = ParamFieldType::TEXT;
+    std::wstring field_options;
+    int sort_order = 0;
+    bool is_required = false;
+    std::wstring created_at;
+};
+
 std::wstring StatusToString(DeviceStatus status);
+ParamFieldType StringToFieldType(const std::wstring& str);
+std::wstring FieldTypeToString(ParamFieldType type);
 DeviceStatus StringToStatus(const std::wstring& str);
 std::wstring GenerateUniqueCode();
 std::wstring GetCurrentDateTime();

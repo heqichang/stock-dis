@@ -8,25 +8,26 @@
 DeviceListPage::DeviceListPage() {}
 
 void DeviceListPage::OnCreate() {
-    UIHelper::CreateStatic(hWnd_, -1, L"搜索:", 10, 10, 40, 25);
-    controls_[ID_SEARCH_EDIT] = UIHelper::CreateEdit(hWnd_, ID_SEARCH_EDIT, L"", 55, 10, 200, 25);
-    controls_[ID_SEARCH_BUTTON] = UIHelper::CreateButton(hWnd_, ID_SEARCH_BUTTON, L"搜索", 265, 10, 80, 25);
+    UIHelper::CreateStatic(hWnd_, -1, L"搜索:", 10, 15, 50, 28);
+    controls_[ID_SEARCH_EDIT] = UIHelper::CreateEdit(hWnd_, ID_SEARCH_EDIT, L"", 65, 15, 200, 32);
+    controls_[ID_SEARCH_BUTTON] = UIHelper::CreateButton(hWnd_, ID_SEARCH_BUTTON, L"搜索", 275, 15, 80, 36);
     
-    UIHelper::CreateStatic(hWnd_, -1, L"状态:", 355, 10, 40, 25);
-    controls_[ID_STATUS_COMBO] = UIHelper::CreateComboBox(hWnd_, ID_STATUS_COMBO, 400, 10, 120, 100);
+    UIHelper::CreateStatic(hWnd_, -1, L"状态:", 365, 15, 50, 28);
+    controls_[ID_STATUS_COMBO] = UIHelper::CreateComboBox(hWnd_, ID_STATUS_COMBO, 415, 15, 120, 120);
     UIHelper::SetComboBoxItem(controls_[ID_STATUS_COMBO], L"全部", -1);
     UIHelper::SetComboBoxItem(controls_[ID_STATUS_COMBO], L"使用中", 0);
     UIHelper::SetComboBoxItem(controls_[ID_STATUS_COMBO], L"报废", 1);
     SendMessage(controls_[ID_STATUS_COMBO], CB_SETCURSEL, 0, 0);
     
-    controls_[ID_ADD_BUTTON] = UIHelper::CreateButton(hWnd_, ID_ADD_BUTTON, L"新增设备", 540, 10, 100, 35);
-    controls_[ID_EDIT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_EDIT_BUTTON, L"编辑", 650, 10, 80, 35);
-    controls_[ID_DELETE_BUTTON] = UIHelper::CreateButton(hWnd_, ID_DELETE_BUTTON, L"删除", 740, 10, 80, 35);
-    controls_[ID_PRINT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_PRINT_BUTTON, L"打印标签", 830, 10, 100, 35);
-    controls_[ID_EXPORT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_EXPORT_BUTTON, L"导出", 940, 10, 80, 35);
-    controls_[ID_IMPORT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_IMPORT_BUTTON, L"导入", 1030, 10, 80, 35);
+    controls_[ID_ADD_BUTTON] = UIHelper::CreateButton(hWnd_, ID_ADD_BUTTON, L"新增设备", 540, 15, 100, 36);
+    controls_[ID_EDIT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_EDIT_BUTTON, L"编辑", 650, 15, 80, 36);
+    controls_[ID_DELETE_BUTTON] = UIHelper::CreateButton(hWnd_, ID_DELETE_BUTTON, L"删除", 740, 15, 80, 36);
+    controls_[ID_PRINT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_PRINT_BUTTON, L"打印标签", 830, 15, 100, 36);
+    controls_[ID_PARAM_SETTINGS_BUTTON] = UIHelper::CreateButton(hWnd_, ID_PARAM_SETTINGS_BUTTON, L"参数设置", 940, 15, 100, 36);
+    controls_[ID_EXPORT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_EXPORT_BUTTON, L"导出", 1050, 15, 80, 36);
+    controls_[ID_IMPORT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_IMPORT_BUTTON, L"导入", 1140, 15, 80, 36);
     
-    controls_[ID_LIST_VIEW] = UIHelper::CreateListView(hWnd_, ID_LIST_VIEW, 10, 55, 1100, 500);
+    controls_[ID_LIST_VIEW] = UIHelper::CreateListView(hWnd_, ID_LIST_VIEW, 10, 65, 1100, 500);
     
     UIHelper::AddListViewColumn(controls_[ID_LIST_VIEW], 0, L"ID", 60);
     UIHelper::AddListViewColumn(controls_[ID_LIST_VIEW], 1, L"设备名称", 250);
@@ -34,11 +35,73 @@ void DeviceListPage::OnCreate() {
     UIHelper::AddListViewColumn(controls_[ID_LIST_VIEW], 3, L"状态", 100);
     UIHelper::AddListViewColumn(controls_[ID_LIST_VIEW], 4, L"更新时间", 180);
     
-    controls_[ID_PREV_PAGE] = UIHelper::CreateButton(hWnd_, ID_PREV_PAGE, L"上一页", 10, 565, 100, 30);
-    controls_[ID_NEXT_PAGE] = UIHelper::CreateButton(hWnd_, ID_NEXT_PAGE, L"下一页", 1010, 565, 100, 30);
-    controls_[ID_PAGE_INFO] = UIHelper::CreateStatic(hWnd_, ID_PAGE_INFO, L"", 450, 565, 220, 30, SS_CENTER);
+    controls_[ID_PREV_PAGE] = UIHelper::CreateButton(hWnd_, ID_PREV_PAGE, L"上一页", 10, 575, 100, 32);
+    controls_[ID_NEXT_PAGE] = UIHelper::CreateButton(hWnd_, ID_NEXT_PAGE, L"下一页", 1010, 575, 100, 32);
+    controls_[ID_PAGE_INFO] = UIHelper::CreateStatic(hWnd_, ID_PAGE_INFO, L"", 450, 575, 220, 32, SS_CENTER);
     
     LoadData();
+}
+
+void DeviceListPage::OnMeasureItem(WPARAM idCtrl, LPMEASUREITEMSTRUCT lpMeasureItem) {
+    if (idCtrl == ID_LIST_VIEW) {
+        lpMeasureItem->itemHeight = 28;
+    }
+}
+
+void DeviceListPage::OnDrawItem(LPDRAWITEMSTRUCT lpDrawItem) {
+    if (lpDrawItem->CtlType != ODT_LISTVIEW) return;
+    
+    HWND hListView = GetDlgItem(hWnd_, ID_LIST_VIEW);
+    if (!hListView) return;
+    
+    HDC hdc = lpDrawItem->hDC;
+    RECT rcItem = lpDrawItem->rcItem;
+    int nItem = lpDrawItem->itemID;
+    
+    if (nItem < 0) return;
+    
+    COLORREF textColor = GetSysColor(COLOR_WINDOWTEXT);
+    COLORREF bkColor = GetSysColor(COLOR_WINDOW);
+    HBRUSH hBrush = nullptr;
+    
+    if (lpDrawItem->itemState & ODS_SELECTED) {
+        textColor = GetSysColor(COLOR_HIGHLIGHTTEXT);
+        bkColor = GetSysColor(COLOR_HIGHLIGHT);
+        hBrush = CreateSolidBrush(bkColor);
+    } else {
+        hBrush = (HBRUSH)GetStockObject(WHITE_BRUSH);
+    }
+    
+    SetTextColor(hdc, textColor);
+    SetBkColor(hdc, bkColor);
+    FillRect(hdc, &rcItem, hBrush);
+    
+    if (lpDrawItem->itemState & ODS_SELECTED) {
+        DeleteObject(hBrush);
+    }
+    
+    HFONT hOldFont = (HFONT)SelectObject(hdc, UIHelper::GetFont(UIHelper::FontType::List));
+    
+    TCHAR buf[256];
+    
+    for (int iCol = 0; iCol < 5; ++iCol) {
+        LVITEM lvi = {};
+        lvi.mask = LVIF_TEXT;
+        lvi.iItem = nItem;
+        lvi.iSubItem = iCol;
+        lvi.pszText = buf;
+        lvi.cchTextMax = _countof(buf);
+        ListView_GetItem(hListView, &lvi);
+        
+        RECT rcCol;
+        ListView_GetSubItemRect(hListView, nItem, iCol, LVIR_BOUNDS, &rcCol);
+        rcCol.left += 5;
+        rcCol.right -= 5;
+        
+        DrawText(hdc, buf, -1, &rcCol, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+    }
+    
+    SelectObject(hdc, hOldFont);
 }
 
 void DeviceListPage::OnSize(int cx, int cy) {
@@ -101,6 +164,9 @@ void DeviceListPage::OnCommand(WPARAM wParam, LPARAM lParam) {
             break;
         case ID_IMPORT_BUTTON:
             OnImport();
+            break;
+        case ID_PARAM_SETTINGS_BUTTON:
+            OnParamSettings();
             break;
         case ID_PREV_PAGE:
             OnPrevPage();
@@ -238,6 +304,10 @@ void DeviceListPage::OnExport() {
 
 void DeviceListPage::OnImport() {
     SendMessage(hParent_, WM_COMMAND, 5, 0);
+}
+
+void DeviceListPage::OnParamSettings() {
+    SendMessage(hParent_, WM_COMMAND, 6, 0);
 }
 
 void DeviceListPage::OnPrevPage() {

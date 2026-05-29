@@ -98,8 +98,8 @@ void ParamFieldEditDialog::OnSave() {
         return;
     }
     
-    ParamField existing = DeviceRepository::Instance().GetParamFieldByKey(key);
-    if (existing.id > 0 && existing.id != field_.id) {
+    auto existingOpt = DeviceRepository::Instance().GetParamFieldByKey(key);
+    if (existingOpt.has_value() && existingOpt->id != field_.id) {
         UIHelper::ShowMessageBox(hWnd_, L"字段标识已存在", L"提示");
         SetFocus(controls_[ID_KEY_EDIT]);
         return;

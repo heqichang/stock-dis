@@ -10,7 +10,7 @@ public:
     WindowBase();
     virtual ~WindowBase();
     
-    virtual bool Create(HWND hParent, const std::wstring& title, int x, int y, int width, int height);
+    virtual bool Create(HWND hParent, const std::wstring& title, int x, int y, int width, int height, bool dialogStyle = false);
     virtual void Destroy();
     HWND GetHandle() const { return hWnd_; }
     

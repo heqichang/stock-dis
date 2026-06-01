@@ -8,24 +8,24 @@
 DeviceListPage::DeviceListPage() {}
 
 void DeviceListPage::OnCreate() {
-    UIHelper::CreateStatic(hWnd_, -1, L"搜索:", 10, 15, 50, 28);
-    controls_[ID_SEARCH_EDIT] = UIHelper::CreateEdit(hWnd_, ID_SEARCH_EDIT, L"", 65, 15, 200, 32);
-    controls_[ID_SEARCH_BUTTON] = UIHelper::CreateButton(hWnd_, ID_SEARCH_BUTTON, L"搜索", 275, 15, 80, 36);
+    UIHelper::CreateStatic(hWnd_, -1, L"搜索:", 10, 15, 60, 28);
+    controls_[ID_SEARCH_EDIT] = UIHelper::CreateEdit(hWnd_, ID_SEARCH_EDIT, L"", 75, 15, 200, 32);
+    controls_[ID_SEARCH_BUTTON] = UIHelper::CreateButton(hWnd_, ID_SEARCH_BUTTON, L"搜索", 285, 15, 80, 36);
     
-    UIHelper::CreateStatic(hWnd_, -1, L"状态:", 365, 15, 50, 28);
-    controls_[ID_STATUS_COMBO] = UIHelper::CreateComboBox(hWnd_, ID_STATUS_COMBO, 415, 15, 120, 120);
+    UIHelper::CreateStatic(hWnd_, -1, L"状态:", 375, 15, 60, 28);
+    controls_[ID_STATUS_COMBO] = UIHelper::CreateComboBox(hWnd_, ID_STATUS_COMBO, 435, 15, 120, 120);
     UIHelper::SetComboBoxItem(controls_[ID_STATUS_COMBO], L"全部", -1);
     UIHelper::SetComboBoxItem(controls_[ID_STATUS_COMBO], L"使用中", 0);
     UIHelper::SetComboBoxItem(controls_[ID_STATUS_COMBO], L"报废", 1);
     SendMessage(controls_[ID_STATUS_COMBO], CB_SETCURSEL, 0, 0);
     
-    controls_[ID_ADD_BUTTON] = UIHelper::CreateButton(hWnd_, ID_ADD_BUTTON, L"新增设备", 540, 15, 100, 36);
-    controls_[ID_EDIT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_EDIT_BUTTON, L"编辑", 650, 15, 80, 36);
-    controls_[ID_DELETE_BUTTON] = UIHelper::CreateButton(hWnd_, ID_DELETE_BUTTON, L"删除", 740, 15, 80, 36);
-    controls_[ID_PRINT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_PRINT_BUTTON, L"打印标签", 830, 15, 100, 36);
-    controls_[ID_PARAM_SETTINGS_BUTTON] = UIHelper::CreateButton(hWnd_, ID_PARAM_SETTINGS_BUTTON, L"参数设置", 940, 15, 100, 36);
-    controls_[ID_EXPORT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_EXPORT_BUTTON, L"导出", 1050, 15, 80, 36);
-    controls_[ID_IMPORT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_IMPORT_BUTTON, L"导入", 1140, 15, 80, 36);
+    controls_[ID_ADD_BUTTON] = UIHelper::CreateButton(hWnd_, ID_ADD_BUTTON, L"新增设备", 560, 15, 100, 36);
+    controls_[ID_EDIT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_EDIT_BUTTON, L"编辑", 670, 15, 80, 36);
+    controls_[ID_DELETE_BUTTON] = UIHelper::CreateButton(hWnd_, ID_DELETE_BUTTON, L"删除", 760, 15, 80, 36);
+    controls_[ID_PRINT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_PRINT_BUTTON, L"打印标签", 850, 15, 100, 36);
+    controls_[ID_PARAM_SETTINGS_BUTTON] = UIHelper::CreateButton(hWnd_, ID_PARAM_SETTINGS_BUTTON, L"参数设置", 960, 15, 100, 36);
+    controls_[ID_EXPORT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_EXPORT_BUTTON, L"导出", 1070, 15, 80, 36);
+    controls_[ID_IMPORT_BUTTON] = UIHelper::CreateButton(hWnd_, ID_IMPORT_BUTTON, L"导入", 1160, 15, 80, 36);
     
     controls_[ID_LIST_VIEW] = UIHelper::CreateListView(hWnd_, ID_LIST_VIEW, 10, 65, 1100, 500);
     
@@ -185,7 +185,7 @@ LRESULT DeviceListPage::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (uMsg == WM_NOTIFY) {
         NMHDR* pNMHDR = (NMHDR*)lParam;
         if (pNMHDR->idFrom == ID_LIST_VIEW && pNMHDR->code == NM_DBLCLK) {
-            OnEdit();
+            OnDetail();
             return 0;
         }
     }
@@ -253,6 +253,16 @@ void DeviceListPage::OnEdit() {
     SendMessage(hParent_, WM_COMMAND, 2, (LPARAM)id);
 }
 
+void DeviceListPage::OnDetail() {
+    int row = UIHelper::GetListViewSelectedRow(controls_[ID_LIST_VIEW]);
+    if (row == -1) {
+        UIHelper::ShowMessageBox(hWnd_, L"请先选择一条设备记录", L"提示");
+        return;
+    }
+    int64_t id = (int64_t)UIHelper::GetListViewItemData(controls_[ID_LIST_VIEW], row);
+    SendMessage(hParent_, WM_COMMAND, 7, (LPARAM)id);
+}
+
 void DeviceListPage::OnDelete() {
     int row = UIHelper::GetListViewSelectedRow(controls_[ID_LIST_VIEW]);
     if (row == -1) {
@@ -288,7 +298,7 @@ void DeviceListPage::OnPrint() {
             PrintLabel label;
             label.name = device->name;
             label.code = device->code;
-            label.barcode = BarcodeGenerator::Instance().GenerateCode128(device->code);
+            label.barcode = BarcodeGenerator::Instance().GenerateCode128(device->code, 280, 120);
             labels.push_back(label);
         }
     }

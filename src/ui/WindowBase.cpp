@@ -8,7 +8,7 @@ WindowBase::~WindowBase() {
     Destroy();
 }
 
-bool WindowBase::Create(HWND hParent, const std::wstring& title, int x, int y, int width, int height) {
+bool WindowBase::Create(HWND hParent, const std::wstring& title, int x, int y, int width, int height, bool dialogStyle) {
     WNDCLASSEX wcex = {};
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -24,13 +24,16 @@ bool WindowBase::Create(HWND hParent, const std::wstring& title, int x, int y, i
     DWORD style = WS_OVERLAPPEDWINDOW;
     DWORD exStyle = 0;
     
-    if (hParent) {
+    if (hParent && !dialogStyle) {
         style = WS_CHILD | WS_VISIBLE;
         exStyle = 0;
+    } else if (dialogStyle) {
+        style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_VISIBLE;
+        exStyle = WS_EX_DLGMODALFRAME;
     }
     
     hWnd_ = CreateWindowEx(exStyle, WINDOW_CLASS_NAME, title.c_str(), style,
-                          x, y, width, height, hParent, nullptr, GetModuleHandle(nullptr), this);
+                          x, y, width, height, dialogStyle ? hParent : hParent, nullptr, GetModuleHandle(nullptr), this);
     
     if (!hWnd_) return false;
     

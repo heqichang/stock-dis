@@ -185,7 +185,7 @@ void ParamSettingsPage::OnAdd() {
     int x = (rcClient.right - dlgWidth) / 2;
     int y = (rcClient.bottom - dlgHeight) / 2;
     
-    dialog->Create(hWnd_, L"新增字段", x, y, dlgWidth, dlgHeight);
+    dialog->Create(hWnd_, L"新增字段", x, y, dlgWidth, dlgHeight, true);
 }
 
 void ParamSettingsPage::OnEdit() {
@@ -221,7 +221,7 @@ void ParamSettingsPage::OnEdit() {
     int x = (rcClient.right - dlgWidth) / 2;
     int y = (rcClient.bottom - dlgHeight) / 2;
     
-    dialog->Create(hWnd_, L"编辑字段", x, y, dlgWidth, dlgHeight);
+    dialog->Create(hWnd_, L"编辑字段", x, y, dlgWidth, dlgHeight, true);
 }
 
 void ParamSettingsPage::OnDelete() {

@@ -21,13 +21,24 @@ set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 include_directories(
     ${SRC_DIR}
     ${THIRD_PARTY_DIR}/sqlite3
-    ${THIRD_PARTY_DIR}/zint
+    ${THIRD_PARTY_DIR}/zint/backend
     ${THIRD_PARTY_DIR}/nlohmann
     ${THIRD_PARTY_DIR}/libxlsxwriter/include
 )
 
 add_subdirectory(${THIRD_PARTY_DIR}/sqlite3)
+
+# Zint 库配置
+set(ZINT_SHARED OFF CACHE BOOL "Build shared library" FORCE)
+set(ZINT_STATIC ON CACHE BOOL "Build static library" FORCE)
+set(ZINT_FRONTEND OFF CACHE BOOL "Build frontend" FORCE)
+set(ZINT_USE_QT OFF CACHE BOOL "Build with Qt support" FORCE)
+set(ZINT_USE_PNG OFF CACHE BOOL "Build with PNG support" FORCE)
+set(ZINT_USE_GS1SE OFF CACHE BOOL "Build with GS1 Syntax Engine" FORCE)
+set(ZINT_TEST OFF CACHE BOOL "Set test compile flag" FORCE)
+set(ZINT_UNINSTALL OFF CACHE BOOL "Add uninstall target" FORCE)
 add_subdirectory(${THIRD_PARTY_DIR}/zint)
+
 add_subdirectory(${THIRD_PARTY_DIR}/libxlsxwriter)
 
 file(GLOB_RECURSE SOURCES
@@ -41,7 +52,7 @@ add_executable(DeviceManager WIN32 ${SOURCES} ${SRC_DIR}/app.manifest)
 
 target_link_libraries(DeviceManager
     sqlite3
-    zint
+    zint-static
     xlsxwriter
     comctl32
     gdi32

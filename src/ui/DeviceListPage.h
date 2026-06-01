@@ -49,6 +49,7 @@ private:
     void OnPrevPage();
     void OnNextPage();
     void OnStatusFilter();
+    void OnDetail();
     
     DeviceQuery query_;
     PagedResult result_;

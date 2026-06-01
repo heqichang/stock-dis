@@ -31,6 +31,7 @@ private:
     void OnPrint();
     void OnScrap();
     void DrawBarcode(HDC hdc);
+    void DrawParamsForm(HDC hdc, int x, int y, int right);
     
     int64_t deviceId_ = 0;
     std::optional<Device> device_;

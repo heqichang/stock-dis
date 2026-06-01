@@ -110,6 +110,13 @@ void MainWindow::OnCommand(WPARAM wParam, LPARAM lParam) {
         case 6:
             ShowParamSettings();
             break;
+        case 7: {
+            int64_t deviceId = (int64_t)lParam;
+            if (deviceId > 0) {
+                ShowDeviceDetail(deviceId);
+            }
+            break;
+        }
         case 10: {
             int64_t deviceId = (int64_t)lParam;
             if (deviceId > 0) {
@@ -249,7 +256,7 @@ void MainWindow::ShowScanCodeDialog(const std::wstring& code) {
         PrintLabel label;
         label.name = device->name;
         label.code = device->code;
-        label.barcode = BarcodeGenerator::Instance().GenerateCode128(device->code);
+        label.barcode = BarcodeGenerator::Instance().GenerateCode128(device->code, 280, 120);
         
         std::vector<PrintLabel> labels;
         labels.push_back(label);

@@ -21,47 +21,63 @@ float PrintService::MMToPixelsY(HDC hdc, float mm) {
 
 void PrintService::DrawLabel(HDC hdc, const PrintLabel& label, int x, int y, int width, int height) {
     RECT rect = {x, y, x + width, y + height};
-    
+
     FillRect(hdc, &rect, (HBRUSH)GetStockObject(WHITE_BRUSH));
-    Rectangle(hdc, x, y, x + width, y + height);
-    
-    int barcode_height = height * 0.55;
-    int barcode_width = width * 0.9;
-    int barcode_x = x + (width - barcode_width) / 2;
-    int barcode_y = y + height * 0.05;
-    
+
+    int margin = (int)(height * 0.06);
+    int textAreaHeight = (int)(height * 0.22);
+    int barcodeHeight = height - textAreaHeight - margin * 3;
+    int barcodeWidth = (int)(width * 0.88);
+    int barcodeX = x + (width - barcodeWidth) / 2;
+    int barcodeY = y + margin;
+
     if (label.barcode && label.barcode->width > 0 && label.barcode->height > 0) {
         HBITMAP hBitmap = label.barcode->ToHBITMAP(hdc);
         if (hBitmap) {
             HDC hMemDC = CreateCompatibleDC(hdc);
             HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
-            
-            SetStretchBltMode(hdc, HALFTONE);
-            StretchBlt(hdc, barcode_x, barcode_y, barcode_width, barcode_height,
+
+            int actualWidth = label.barcode->width;
+            int actualHeight = label.barcode->height;
+
+            if (actualWidth > barcodeWidth || actualHeight > barcodeHeight) {
+                float ratioX = (float)barcodeWidth / actualWidth;
+                float ratioY = (float)barcodeHeight / actualHeight;
+                float ratio = min(ratioX, ratioY);
+                actualWidth = (int)(actualWidth * ratio);
+                actualHeight = (int)(actualHeight * ratio);
+            }
+
+            int actualX = barcodeX + (barcodeWidth - actualWidth) / 2;
+            int actualY = barcodeY + (barcodeHeight - actualHeight) / 2;
+
+            SetStretchBltMode(hdc, STRETCH_HALFTONE);
+            StretchBlt(hdc, actualX, actualY, actualWidth, actualHeight,
                       hMemDC, 0, 0, label.barcode->width, label.barcode->height, SRCCOPY);
-            
+
             SelectObject(hMemDC, hOldBitmap);
             DeleteDC(hMemDC);
             DeleteObject(hBitmap);
         }
     }
-    
-    HFONT hNameFont = CreateFont(height * 0.12, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+
+    HFONT hNameFont = CreateFont((int)(height * 0.11), 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
                                  GB2312_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                                  DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Microsoft YaHei");
-    HFONT hCodeFont = CreateFont(height * 0.1, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+    HFONT hCodeFont = CreateFont((int)(height * 0.09), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                                  GB2312_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                                  DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Consolas");
-    
-    RECT name_rect = {x + width * 0.05, y + height * 0.68, x + width * 0.95, y + height * 0.82};
-    RECT code_rect = {x + width * 0.05, y + height * 0.83, x + width * 0.95, y + height * 0.95};
-    
+
+    int textTop = y + height - textAreaHeight - margin;
+    RECT name_rect = {x + (int)(width * 0.05), textTop, x + (int)(width * 0.95), textTop + (int)(textAreaHeight * 0.50)};
+    RECT code_rect = {x + (int)(width * 0.05), textTop + (int)(textAreaHeight * 0.50), x + (int)(width * 0.95), textTop + textAreaHeight};
+
     HFONT hOldFont = (HFONT)SelectObject(hdc, hNameFont);
     DrawText(hdc, label.name.c_str(), -1, &name_rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
-    
+
     SelectObject(hdc, hCodeFont);
     DrawText(hdc, label.code.c_str(), -1, &code_rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-    
+
     SelectObject(hdc, hOldFont);
     DeleteObject(hNameFont);
     DeleteObject(hCodeFont);

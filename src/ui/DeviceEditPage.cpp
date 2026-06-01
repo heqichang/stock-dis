@@ -263,7 +263,7 @@ void DeviceEditPage::OnSave() {
                 PrintLabel label;
                 label.name = device.name;
                 label.code = device.code;
-                label.barcode = BarcodeGenerator::Instance().GenerateCode128(device.code);
+                label.barcode = BarcodeGenerator::Instance().GenerateCode128(device.code, 280, 120);
                 
                 std::vector<PrintLabel> labels;
                 labels.push_back(label);
